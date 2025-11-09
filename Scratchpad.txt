@@ -1,0 +1,73 @@
+def initialize_from_arduino(window):
+    """Initialize all values from Arduino."""
+    #The function initialize_from_arduino(window) is designed to initialize 
+    # all values from an Arduino device. It communicates with the Arduino to 
+    # request and receive various data, such as current values, button states, 
+    # and setpoints. The function ensures that the GUI is synchronized with the 
+    # Arduino's state.
+
+    global values_received, states_received, setpoints_received, CNT_button_states, current_values
+    MAX_RETRIES = 3
+    TIMEOUT = 5
+    
+    for attempt in range(MAX_RETRIES):
+        print(f"Debug 4 - Starting Arduino initialization (attempt {attempt + 1}/{MAX_RETRIES})")
+        
+        # Reset state
+        values_received = False
+        states_received = False
+        setpoints_received = False
+        
+        # Clear buffers
+        serialInst.reset_input_buffer()
+        serialInst.reset_output_buffer()
+        while not message_queue.empty():
+            message_queue.get()
+            
+        # Request initialization data
+        for request, expected in [
+            ("CMD:REQUEST_VALUES\n", "VALUES:"),
+            ("CMD:REQUEST_BUTTON_STATES\n", "BUTTON_STATES:"),
+            ("CMD:REQUEST_SETPOINTS\n", "SETPOINTS:")
+        ]:
+            print(f"Debug 5 - Sending: {request.strip()}")
+            serialInst.write(request.encode('utf-8'))
+            serialInst.flush()
+            time.sleep(0.5)
+            
+            # Wait for response
+            timeout = time.time() + TIMEOUT
+            while time.time() < timeout:
+                try:
+                    message = message_queue.get(timeout=0.5)
+                    print(f"Debug 6 - Received: {message}")
+                    
+                    if message.startswith(expected):
+                        if process_response(message, expected, window):
+                            print(f"Debug 7 - Valid {expected} received")
+                            break
+                except queue.Empty:
+                    continue
+            else:
+                print(f"Debug 8 - Timeout waiting for {expected}")
+                break
+            
+            time.sleep(0.2)
+        
+        if all([values_received, states_received, setpoints_received]):
+            print("Debug 9 - Initialization successful")
+            CNT_button_states = GUI_button_states.copy()  # Sync CNT_button_states with GUI_button_states
+            print(f"Debug 10 - Servo states initialized to: {CNT_button_states}")
+            # Add setpoints to current_values
+            current_values.update({
+                'S1V_SPT': S1V_SPT, 'S1A_SPT': S1A_SPT, 'S1P_SPT': S1P_SPT,
+                'S2V_SPT': S2V_SPT, 'S2A_SPT': S2A_SPT, 'S2P_SPT': S2P_SPT,
+                'S3V_SPT': S3V_SPT, 'S3A_SPT': S3A_SPT, 'S3P_SPT': S3P_SPT,
+                'S4V_SPT': S4V_SPT, 'S4A_SPT': S4A_SPT, 'S4P_SPT': S4P_SPT
+            })
+            return True
+            
+        print(f"Debug 11 - Initialization attempt {attempt + 1} failed")
+        time.sleep(2)
+    
+    return False
