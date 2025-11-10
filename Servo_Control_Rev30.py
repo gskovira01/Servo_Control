@@ -227,11 +227,11 @@ DEBOUNCE_INTERVAL = 0.05                        # Button debounce protection (se
 
 # ClearCore Controller Network Addresses
 # Dedicated Ethernet subnet (192.168.10.x) isolated from internet traffic
-CLEARCORE1_IP = '192.168.10.171'               # Primary controller (Board 1 servos)
+CLEARCORE1_IP = '192.168.1.151'               # Primary controller (Board 1 servos)
 CLEARCORE1_PORT = 8888                         # ClearCore 1 listening port
 LOCAL_PORT1 = 8889                             # Local port for ClearCore 1 communication
 
-CLEARCORE2_IP = '192.168.10.172'               # Secondary controller (Board 2 servos) 
+CLEARCORE2_IP = '192.168.1.152'               # Secondary controller (Board 2 servos) 
 CLEARCORE2_PORT = 8890                         # ClearCore 2 listening port
 LOCAL_PORT2 = 8889                             # Local port for ClearCore 2 communication
 

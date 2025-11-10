@@ -362,11 +362,11 @@ DEBOUNCE_INTERVAL = 0.05                        # Button debounce protection (se
 
 # ClearCore Controller Network Addresses
 # Dedicated Ethernet subnet (192.168.10.x) isolated from internet traffic
-CLEARCORE1_IP = '192.168.1.171'               # Primary controller (Board 1 servos)
+CLEARCORE1_IP = '192.168.1.151'               # Primary controller (Board 1 servos)
 CLEARCORE1_PORT = 8888                         # ClearCore 1 listening port
 LOCAL_PORT1 = 8889                             # Local port for ClearCore 1 communication
 
-CLEARCORE2_IP = '192.168.1.172'               # Secondary controller (Board 2 servos) 
+CLEARCORE2_IP = '192.168.1.152'               # Secondary controller (Board 2 servos) 
 CLEARCORE2_PORT = 8890                         # ClearCore 2 listening port
 LOCAL_PORT2 = 8889                             # Local port for ClearCore 2 communication
 
@@ -1126,7 +1126,7 @@ def validate_input(key, values, min_val, max_val):
         print(f"Invalid value for {key}")
     return None
 
-def show_numeric_keypad(title, current_value, min_val=0, max_val=18000):
+def show_numeric_keypad(title, current_value, min_val=0, max_val=54000):
     """Custom numeric keypad popup for touchscreen input"""
     layout = [
         [sg.Text(title, font=GLOBAL_FONT)],
@@ -1172,7 +1172,7 @@ def show_numeric_keypad(title, current_value, min_val=0, max_val=18000):
                 sg.popup_error('Please enter a valid number', keep_on_top=True, location=(50, 50), font=GLOBAL_FONT)
                 
         elif event == 'Clear':
-            popup_window['display'].update('')
+            popup_window['display'].update('0')
             
         elif event == '⌫':  # Backspace
             current = values['display']
@@ -1539,7 +1539,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Velocity Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 200000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}V_SPT'] = new_value
@@ -1550,7 +1550,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Acceleration Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 200000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}A_SPT'] = new_value
@@ -1561,7 +1561,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Position Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 54000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}P_SPT'] = new_value
