@@ -10,10 +10,10 @@ PURPOSE:
     robust error handling and cross-platform deployment capabilities.
 
 HARDWARE ARCHITECTURE:
-    - ClearCore Controller 1: 192.168.10.171:8888 (Board 1 servos)
-    - ClearCore Controller 2: 192.168.10.172:8890 (Board 2 servos)
+    - ClearCore Controller 1: 192.168.1.151:8888 (Board 1 servos)
+    - ClearCore Controller 2: 192.168.1.152:8890 (Board 2 servos)
     - Host System: Windows development / Raspberry Pi deployment
-    - Network: Dedicated Ethernet subnet (192.168.10.x) for servo control
+    - Network: Dedicated Ethernet subnet (192.168.1.x) for servo control
     - Interface: Touchscreen optimized GUI with numeric keypad
 
 RECENT ENHANCEMENTS (Network Error Handling):
@@ -38,8 +38,8 @@ NETWORK TOPOLOGY:
     [WiFi Router] (Internet access, separate subnet 192.168.1.x)
 
 AUTHORS: Greg Skovira
-VERSION: Rev 32 (Git Repository & Professional Deployment)
-DATE: November 9, 2025
+VERSION: Rev 33 (Updated Setpoint Limits & UI Improvements)
+DATE: November 10, 2025
 LICENSE: Internal Use Only
 
 ================================================================================
