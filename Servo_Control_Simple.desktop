@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Servo Control
+Comment=8-Axis Servo Controller
+Exec=/home/pi/Servo_Control/run_servo_control.sh
+Icon=applications-engineering
+Path=/home/pi/Servo_Control
+Terminal=false
+StartupNotify=true
+Categories=Application;

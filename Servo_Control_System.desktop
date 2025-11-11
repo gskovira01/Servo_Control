@@ -1,0 +1,27 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Servo Control System
+Comment=8-Axis ClearCore Servo Controller GUI
+Exec=/home/pi/Servo_Control/run_servo_control.sh
+Icon=/home/pi/Servo_Control/servo_icon.png
+Path=/home/pi/Servo_Control
+Terminal=false
+StartupNotify=true
+Categories=Engineering;Industrial;
+Keywords=servo;control;clearcore;automation;gui;
+
+# Additional properties
+StartupWMClass=Servo_Control_8_Axis
+MimeType=application/x-servo-control;
+Actions=Debug;Terminal;
+
+[Desktop Action Debug]
+Name=Run in Debug Mode
+Exec=gnome-terminal -- /home/pi/Servo_Control/run_servo_control.sh
+Icon=utilities-terminal
+
+[Desktop Action Terminal]
+Name=Open Terminal Here
+Exec=gnome-terminal --working-directory=/home/pi/Servo_Control
+Icon=utilities-terminal
