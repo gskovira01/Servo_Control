@@ -30,9 +30,13 @@ if [ ! -f "Servo_Control_8_Axis.py" ]; then
     exit 1
 fi
 
-# Check if Python3 is available
-if ! command -v python3 &> /dev/null; then
-    echo "ERROR: Python3 is not installed or not in PATH"
+# Activate existing Python 3.12 virtual environment
+if [ -d "/home/pi/mypy/myvenv" ]; then
+    echo "Activating Python 3.12 virtual environment..."
+    source /home/pi/mypy/myvenv/bin/activate
+    echo "Using Python: $(python --version)"
+else
+    echo "ERROR: Virtual environment not found at /home/pi/mypy/myvenv"
     exit 1
 fi
 
@@ -49,8 +53,8 @@ echo "Python: $(python3 --version)"
 echo "Time: $(date)"
 echo "=========================================="
 
-# Run the servo control application
-python3 Servo_Control_8_Axis.py
+# Run the servo control application (using activated virtual environment)
+python Servo_Control_8_Axis.py
 
 # Check exit status
 if [ $? -eq 0 ]; then
