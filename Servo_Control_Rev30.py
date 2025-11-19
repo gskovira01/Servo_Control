@@ -551,13 +551,13 @@ setpoint_values_1 = {
     'Start': 0,         # Motion start trigger
     
     # Servo 1 setpoints: Velocity, Acceleration, Position (safe defaults)
-    'S1V_SPT': 10000, 'S1A_SPT': 10000, 'S1P_SPT': 0,
+    'S1V_SPT': 1000, 'S1A_SPT': 1000, 'S1P_SPT': 0,
     # Servo 2 setpoints: Velocity, Acceleration, Position
-    'S2V_SPT': 10000, 'S2A_SPT': 10000, 'S2P_SPT': 0,
+    'S2V_SPT': 1000, 'S2A_SPT': 1000, 'S2P_SPT': 0,
     # Servo 3 setpoints: Velocity, Acceleration, Position  
-    'S3V_SPT': 10000, 'S3A_SPT': 10000, 'S3P_SPT': 0,
+    'S3V_SPT': 1000, 'S3A_SPT': 1000, 'S3P_SPT': 0,
     # Servo 4 setpoints: Velocity, Acceleration, Position
-    'S4V_SPT': 10000, 'S4A_SPT': 10000, 'S4P_SPT': 0
+    'S4V_SPT': 1000, 'S4A_SPT': 1000, 'S4P_SPT': 0
 }
 setpoint_values_2 = setpoint_values_1.copy()            # Independent setpoints for Board 2
 
@@ -1387,7 +1387,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Velocity Setpoint for Servo {servo}',
                         current_value,
-                        0, 200000
+                        0, 18000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}V_SPT'] = new_value
@@ -1398,7 +1398,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Acceleration Setpoint for Servo {servo}',
                         current_value,
-                        0, 200000
+                        0, 18000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}A_SPT'] = new_value
@@ -1409,7 +1409,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Position Setpoint for Servo {servo}',
                         current_value,
-                        0, 54000
+                        0, 18000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}P_SPT'] = new_value
