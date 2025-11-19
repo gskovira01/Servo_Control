@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--This file was created using RSLogix 5000 software.-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.02" TargetName="Light_Control" TargetType="Controller" TargetRevision="32.02" TargetLastEdited="2025-11-16T12:00:00.000Z" ContainsContext="true" Owner="Greg Skovira" ExportDate="Sat Nov 16 12:00:00 2025" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="Light_Control">
+<RedundancyInfo Enabled="false" KeepTestEditsOnSwitchOver="false" IOMemoryPadPercentage="90" DataTablePadPercentage="50"/>
+<Security Code="0" ChangesToDetect="16#ffff_ffff_ffff_ffff"/>
+<SafetyInfo/>
+<DataTypes Use="Context">
+</DataTypes>
+<Modules Use="Context">
+<Module Name="Local" CatalogNumber="1756-L83E" Vendor="1" ProductType="14" ProductCode="166" Major="32" Minor="2" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="false">
+<EKey State="ExactMatch"/>
+<Ports>
+<Port Id="1" Address="0" Type="ICP" Upstream="false">
+<Bus Size="17"/>
+</Port>
+</Ports>
+</Module>
+<Module Name="Digital_Input" CatalogNumber="1756-IB16" Vendor="1" ProductType="7" ProductCode="198" Major="2" Minor="1" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="false" Slot="1">
+<EKey State="CompatibleModule"/>
+<Communications>
+<ConfigTag ConfigSize="0" ExternalAccess="Read/Write">
+</ConfigTag>
+</Communications>
+</Module>
+<Module Name="Digital_Output" CatalogNumber="1756-OB16E" Vendor="1" ProductType="7" ProductCode="199" Major="2" Minor="1" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="false" Slot="2">
+<EKey State="CompatibleModule"/>
+<Communications>
+<ConfigTag ConfigSize="0" ExternalAccess="Read/Write">
+</ConfigTag>
+</Communications>
+</Module>
+</Modules>
+<AddOnInstructionDefinitions Use="Context">
+</AddOnInstructionDefinitions>
+<Tags Use="Context">
+<Tag Name="Light_Status" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="ON_Switch" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="OFF_Switch" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="Toggle_Switch" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="Light_Output" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="Toggle_OneShot" TagType="Base" DataType="ONS" Radix="NullType" Constant="false" ExternalAccess="Read/Write">
+<Data Format="L5K">
+<![CDATA[[0]]]>
+</Data>
+<Data Format="Decorated">
+<Structure DataType="ONS">
+<DataValueMember Name="Bit" DataType="BOOL" Value="0"/>
+</Structure>
+</Data>
+</Tag>
+</Tags>
+<Programs Use="Context">
+<Program Use="Context" Name="MainProgram" TestEdits="false" MainRoutineName="MainRoutine" Disabled="false" UseAsFolder="false">
+<Tags Use="Context">
+</Tags>
+<Routines Use="Context">
+<Routine Use="Context" Name="MainRoutine" Type="RLL">
+<Description>
+<![CDATA[Main Light Control Logic
+- Toggle Switch Operation
+- Light starts OFF on power up
+- Each button press toggles light state]]>
+</Description>
+<RLLContent>
+<Rung Number="0" Type="N">
+<Comment>
+<![CDATA[Light Control Toggle Logic
+Input: Digital_Input:I.Data.0 (Toggle Switch)
+Output: Digital_Output:O.Data.0 (Light Bulb)
+Operation: Single button toggles light ON/OFF]]>
+</Comment>
+<Text>
+<![CDATA[[XIC(Digital_Input:I.Data.0) ONS(Toggle_OneShot) [OTE(Light_Status) ,XIC(Light_Status)] OTU(Light_Status)] [XIC(Digital_Input:I.Data.0) ONS(Toggle_OneShot) [XIC(Light_Status)] OTL(Light_Status)];]]>
+</Text>
+</Rung>
+<Rung Number="1" Type="N">
+<Comment>
+<![CDATA[Light Output Assignment
+Copy internal Light_Status to physical output]]>
+</Comment>
+<Text>
+<![CDATA[XIC(Light_Status) OTE(Digital_Output:O.Data.0);]]>
+</Text>
+</Rung>
+<Rung Number="2" Type="N">
+<Comment>
+<![CDATA[Alternative Method - Simple Toggle with Set/Reset
+Single button with clean toggle operation]]>
+</Comment>
+<Text>
+<![CDATA[//[XIC(Digital_Input:I.Data.0) ONS(Toggle_OneShot) XIC(Light_Status) OTU(Light_Status)];]]>
+</Text>
+</Rung>
+<Rung Number="3" Type="N">
+<Comment>
+<![CDATA[Alternative Method - Set Latch]]>
+</Comment>
+<Text>
+<![CDATA[//[XIC(Digital_Input:I.Data.0) ONS(Toggle_OneShot) XIO(Light_Status) OTL(Light_Status)];]]>
+</Text>
+</Rung>
+<Rung Number="4" Type="N">
+<Comment>
+<![CDATA[Copy Light Status to Tag for Monitoring]]>
+</Comment>
+<Text>
+<![CDATA[XIC(Light_Status) OTE(Light_Output);]]>
+</Text>
+</Rung>
+</Routines>
+</Program>
+</Programs>
+<Tasks Use="Context">
+<Task Name="MainTask" Type="CONTINUOUS" Priority="10" Watchdog="500" DisableUpdateOutputs="false" InhibitTask="false">
+<ScheduledPrograms>
+<ScheduledProgram Name="MainProgram"/>
+</ScheduledPrograms>
+</Task>
+</Tasks>
+<CST MasterID="0"/>
+<WallClockTime LocalTimeAdjustment="0" TimeZone="0"/>
+<Trends/>
+<DataLogs/>
+<EventTasks/>
+</Controller>
+</RSLogix5000Content>

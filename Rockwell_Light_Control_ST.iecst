@@ -1,0 +1,173 @@
+(*
+================================================================================
+                    ROCKWELL PLC STRUCTURED TEXT - LIGHT CONTROL
+                         Direct Copy/Paste Ready Program
+================================================================================
+
+PURPOSE:
+    Light bulb control using Structured Text for Allen-Bradley ControlLogix.
+    This code can be directly copied into Studio 5000 Function Block or
+    Structured Text routine.
+
+HARDWARE:
+    - Input ON_Switch    → I:1/0 (NO pushbutton)
+    - Input OFF_Switch   → I:1/1 (NO pushbutton for OFF)
+    - Output Light_Bulb  → O:2/0 (Light output)
+
+CONTROLLER: Allen-Bradley ControlLogix/CompactLogix
+SOFTWARE: Studio 5000 Structured Text Routine
+
+AUTHORS: Greg Skovira
+DATE: November 15, 2025
+================================================================================
+*)
+
+PROGRAM Light_Control
+
+VAR
+    ON_Switch     : BOOL := I:1/0;      (* ON pushbutton input *)
+    OFF_Switch    : BOOL := I:1/1;      (* OFF pushbutton input *)
+    Light_Bulb    : BOOL := O:2/0;      (* Light output *)
+    Light_Status  : BOOL := FALSE;      (* Internal status bit *)
+    ON_OneShot    : BOOL := FALSE;      (* One-shot for ON button *)
+    OFF_OneShot   : BOOL := FALSE;      (* One-shot for OFF button *)
+    ON_Prev       : BOOL := FALSE;      (* Previous ON state *)
+    OFF_Prev      : BOOL := FALSE;      (* Previous OFF state *)
+END_VAR
+
+(* ======================================================================= *)
+(* METHOD 1: Simple Latch/Unlatch Logic                                   *)
+(* ======================================================================= *)
+
+(* Detect rising edge of ON switch *)
+ON_OneShot := ON_Switch AND NOT ON_Prev;
+ON_Prev := ON_Switch;
+
+(* Detect rising edge of OFF switch *)  
+OFF_OneShot := OFF_Switch AND NOT OFF_Prev;
+OFF_Prev := OFF_Switch;
+
+(* Set/Reset light status *)
+IF ON_OneShot THEN
+    Light_Status := TRUE;
+ELSIF OFF_OneShot THEN
+    Light_Status := FALSE;
+END_IF;
+
+(* Output to physical light *)
+Light_Bulb := Light_Status;
+O:2/0 := Light_Bulb;
+
+END_PROGRAM
+
+(*
+================================================================================
+                              ALTERNATIVE METHOD
+================================================================================
+*)
+
+PROGRAM Light_Control_Alt
+
+VAR
+    (* Direct I/O mapping *)
+    ON_Btn        AT %I1.0 : BOOL;     (* Input I:1/0 *)
+    OFF_Btn       AT %I1.1 : BOOL;     (* Input I:1/1 *)
+    Light_Out     AT %Q2.0 : BOOL;     (* Output O:2/0 *)
+    
+    (* Control variables *)
+    Light_Cmd     : BOOL := FALSE;
+    Start_Edge    : R_TRIG;            (* Rising edge trigger *)
+    Stop_Edge     : R_TRIG;            (* Rising edge trigger *)
+END_VAR
+
+(* One-shot detection for button presses *)
+Start_Edge(CLK := ON_Btn);
+Stop_Edge(CLK := OFF_Btn);
+
+(* Light control logic with priority for OFF *)
+IF Stop_Edge.Q THEN
+    Light_Cmd := FALSE;                 (* OFF has priority *)
+ELSIF Start_Edge.Q THEN
+    Light_Cmd := TRUE;                  (* Turn light ON *)
+END_IF;
+
+(* Safety: OFF button always overrides *)
+IF OFF_Btn THEN
+    Light_Cmd := FALSE;
+END_IF;
+
+(* Output assignment *)
+Light_Out := Light_Cmd;
+
+END_PROGRAM
+
+(*
+================================================================================
+                           SIMPLE ONE-LINE VERSION
+================================================================================
+*)
+
+PROGRAM Light_Control_Simple
+
+VAR
+    Light_Latch : BOOL := FALSE;
+END_VAR
+
+(* Single line solution with SR latch behavior *)
+Light_Latch := (Light_Latch OR I:1/0) AND NOT I:1/1;
+O:2/0 := Light_Latch;
+
+END_PROGRAM
+
+(*
+================================================================================
+                              USAGE INSTRUCTIONS
+================================================================================
+
+COPY TO STUDIO 5000:
+1. Open Studio 5000 (RSLogix 5000)
+2. Create new project or open existing
+3. Right-click on MainProgram → Add → Add Routine
+4. Select "Structured Text" as routine type
+5. Copy and paste the desired program above
+6. Configure I/O in the I/O Configuration tree:
+   - Add input module for I:1/0 and I:1/1
+   - Add output module for O:2/0
+7. Download to PLC and test
+
+WIRING:
+- I:1/0: Connect NO pushbutton (24V when pressed)
+- I:1/1: Connect NO pushbutton (24V when pressed)  
+- O:2/0: Connect to light bulb or relay (24V output)
+
+OPERATION:
+- Press ON button (I:1/0) → Light turns ON and latches
+- Press OFF button (I:1/1) → Light turns OFF
+- Light maintains state until opposite button is pressed
+- OFF button has priority for safety
+
+RECOMMENDED VERSION:
+Use "Light_Control_Simple" for basic applications
+Use "Light_Control_Alt" for more complex control with edge detection
+
+================================================================================
+*)
+
+(*
+================================================================================
+                                 TAG DATABASE
+================================================================================
+
+CREATE THESE TAGS IN STUDIO 5000:
+                                      
+Tag Name        Data Type    Address     Description
+--------        ---------    -------     -----------
+ON_Switch       BOOL         I:1/0       Start pushbutton
+OFF_Switch      BOOL         I:1/1       Stop pushbutton  
+Light_Bulb      BOOL         O:2/0       Light output
+Light_Status    BOOL         (internal)  Status memory
+ON_OneShot      BOOL         (internal)  One-shot trigger
+OFF_OneShot     BOOL         (internal)  One-shot trigger
+
+================================================================================
+*)

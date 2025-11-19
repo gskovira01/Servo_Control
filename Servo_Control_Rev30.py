@@ -978,19 +978,17 @@ def show_numeric_keypad(title, current_value, min_val=0, max_val=18000):
         [sg.Button('Cancel', size=(8, 2), font=GLOBAL_FONT), 
          sg.Button('OK', size=(8, 2), font=GLOBAL_FONT)]
     ]
-    
-    # Upper right corner positioning for all platforms
-    location = (50, 50)  # Upper left corner for all platforms
-    
+
+    location = (50, 50)
     popup_window = sg.Window(title, layout, modal=True, finalize=True, location=location)
-    
+
     while True:
         event, values = popup_window.read()
-        
+
         if event in (sg.WIN_CLOSED, 'Cancel'):
             popup_window.close()
             return None
-            
+
         elif event == 'OK':
             try:
                 result = int(values['display'])
@@ -1001,14 +999,14 @@ def show_numeric_keypad(title, current_value, min_val=0, max_val=18000):
                     sg.popup_error(f'Value must be between {min_val} and {max_val}', keep_on_top=True, location=(50, 50), font=GLOBAL_FONT)
             except ValueError:
                 sg.popup_error('Please enter a valid number', keep_on_top=True, location=(50, 50), font=GLOBAL_FONT)
-                
+
         elif event == 'Clear':
-            popup_window['display'].update('')
-            
-        elif event == '⌫':  # Backspace
+            popup_window['display'].update('0')
+
+        elif event == '⌫':
             current = values['display']
             popup_window['display'].update(current[:-1])
-            
+
         elif event in '0123456789':
             current = values['display']
             popup_window['display'].update(current + event)
@@ -1389,7 +1387,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Velocity Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 200000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}V_SPT'] = new_value
@@ -1400,7 +1398,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Acceleration Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 200000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}A_SPT'] = new_value
@@ -1411,7 +1409,7 @@ while True:
                     new_value = show_numeric_keypad(
                         f'Position Setpoint for Servo {servo}',
                         current_value,
-                        0, 18000
+                        0, 54000
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}P_SPT'] = new_value

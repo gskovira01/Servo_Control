@@ -1,0 +1,11 @@
+import gclib
+# Open connection to the controller (replace "192.168.0.2" with your controller's IP)
+g = gclib.GCon()
+g.GOpen('192.168.0.2')
+
+# Send a command and read the response
+response = g.GCommand('MG_VERSION')
+print(response)
+
+# Close the connection
+g.GClose()

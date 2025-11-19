@@ -1,0 +1,133 @@
+/*
+================================================================================
+                    ROCKWELL PLC LADDER LOGIC - LIGHT CONTROL
+                         Simple On/Off Control Program
+================================================================================
+
+PURPOSE:
+    Basic ladder logic program to control a light bulb with on/off switches.
+    Demonstrates fundamental ladder logic concepts for Rockwell controllers.
+
+HARDWARE:
+    - Input I:1/0  → ON Switch (Normally Open pushbutton)
+    - Input I:1/1  → OFF Switch (Normally Closed pushbutton) 
+    - Output O:2/0 → Light Bulb (24V DC or relay output)
+
+CONTROLLER: Allen-Bradley ControlLogix/CompactLogix
+SOFTWARE: RSLogix 5000 / Studio 5000
+
+AUTHORS: Greg Skovira
+DATE: November 15, 2025
+================================================================================
+*/
+
+// LADDER LOGIC PROGRAM - LIGHT BULB CONTROL
+// Rung 0001: Light Control Logic
+
+/*
+RUNG 0001: Basic Light On/Off Control
+Description: Turn light on with ON switch, turn light off with OFF switch
+
+    I:1/0        I:1/1        B3:0/0       O:2/0
+   ─┤ ├─────────┤/├─────────┤ ├─────────( )───
+     │                        │
+     │         I:1/1         │
+     └─────────┤ ├──────────┘
+    
+Explanation:
+- I:1/0: ON switch (normally open)
+- I:1/1: OFF switch (normally closed) 
+- B3:0/0: Internal memory bit for latching
+- O:2/0: Light bulb output
+*/
+
+// Text-based representation for RSLogix programming:
+
+RUNG 0001:
+// Light Control with Latching
+XIC I:1/0          // ON Switch (Examine if Closed)
+XIO I:1/1          // OFF Switch (Examine if Open) 
+XIC B3:0/0         // Memory bit (latch)
+OTE O:2/0;         // Light Output (Output Energize)
+
+// Parallel branch for latching
+XIC I:1/0          // ON Switch
+XIO I:1/1          // OFF Switch  
+OTE B3:0/0;        // Set memory bit
+
+/*
+RUNG 0002: Alternative Method - Set/Reset Logic
+Description: Use SET/RESET instructions for cleaner logic
+
+    I:1/0
+   ─┤ ├─────────(S)───
+                B3:1/0
+
+    I:1/1  
+   ─┤ ├─────────(R)───
+                B3:1/0
+
+    B3:1/0       O:2/0
+   ─┤ ├─────────( )───
+
+*/
+
+RUNG 0002:
+XIC I:1/0          // ON Switch
+OTL B3:1/0;        // Set latch bit
+
+RUNG 0003:
+XIC I:1/1          // OFF Switch (when pressed)
+OTU B3:1/0;        // Reset latch bit
+
+RUNG 0004:
+XIC B3:1/0         // Latch bit status
+OTE O:2/0;         // Light Output
+
+/*
+================================================================================
+                           I/O ASSIGNMENT TABLE
+================================================================================
+
+INPUTS:
+Address    Description           Type                Wire Color
+I:1/0      ON Switch            NO Pushbutton       Blue
+I:1/1      OFF Switch           NC Pushbutton       Red
+
+OUTPUTS:  
+Address    Description           Type                Load
+O:2/0      Light Bulb           24V DC / Relay      120V Bulb
+
+INTERNAL BITS:
+Address    Description           Purpose
+B3:0/0     Light Latch 1        Method 1 latching
+B3:1/0     Light Latch 2        Method 2 latching
+
+================================================================================
+                              OPERATION NOTES
+================================================================================
+
+NORMAL OPERATION:
+1. Press ON switch (I:1/0) → Light turns ON and stays ON
+2. Press OFF switch (I:1/1) → Light turns OFF and stays OFF
+3. Light maintains state until opposite switch is pressed
+
+SAFETY FEATURES:
+- OFF switch overrides ON switch (stop priority)
+- Light cannot be on if OFF switch is pressed
+- Clear logic path for troubleshooting
+
+WIRING NOTES:
+- Use 24V DC for switch inputs (common in industrial applications)
+- Light output can drive relay for high voltage loads
+- Include fuses/breakers as required by electrical code
+
+TESTING PROCEDURE:
+1. Download program to PLC
+2. Go online and monitor ladder logic
+3. Test ON switch - verify light energizes  
+4. Test OFF switch - verify light de-energizes
+5. Verify latching operation (light stays on/off)
+
+================================================================================
+*/
