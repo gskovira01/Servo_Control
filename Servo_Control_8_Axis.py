@@ -1165,7 +1165,7 @@ def show_numeric_keypad(title, current_value, min_val=0, max_val=54000):
     # Upper right corner positioning for all platforms
     location = (50, 50)  # Upper left corner for all platforms
     
-    popup_window = sg.Window(title, layout, modal=True, finalize=True, location=location)
+    popup_window = sg.Window(title, layout, modal=True, finalize=True, location=location, keep_on_top=True)
     
     while True:
         event, values = popup_window.read()
