@@ -1,7 +1,7 @@
 """
 ================================================================================
-                         SERVO CONTROL SYSTEM - REVISION 30
-                    Enhanced Network Error Handling & Cross-Platform Support
+                         SERVO CONTROL SYSTEM - REVISION 34
+                    Per-Servo Numeric Keypad Limits & UI Improvements
 ================================================================================
 
 PURPOSE:
@@ -16,12 +16,10 @@ HARDWARE ARCHITECTURE:
     - Network: Dedicated Ethernet subnet (192.168.1.x) for servo control
     - Interface: Touchscreen optimized GUI with numeric keypad
 
-RECENT ENHANCEMENTS (Network Error Handling):
-    ✅ Graceful degradation: App starts even with network failures
-    ✅ Three-way error dialog: Retry / Continue Anyway / Exit
-    ✅ Debug mode: Persistent error warnings in GUI
-    ✅ Communication status popup after GUI loads
-    ✅ Element reuse bugfix for retry functionality
+RECENT ENHANCEMENTS (Rev 34):
+    ✅ Numeric keypad popup now enforces per-servo POSITION_LIMITS for position setpoints
+    ✅ Prevents entry of values above allowed range for each servo (e.g., 300 for servo 4)
+    ✅ All previous network error handling and UI improvements retained
 
 DEPLOYMENT SCENARIOS:
     1. Production: Full network connectivity, normal operation
@@ -38,8 +36,8 @@ NETWORK TOPOLOGY:
     [WiFi Router] (Internet access, separate subnet 192.168.1.x)
 
 AUTHORS: Greg Skovira
-VERSION: Rev 33 (Updated Setpoint Limits & UI Improvements)
-DATE: November 10, 2025
+VERSION: Rev 34 (Numeric Keypad Per-Servo Limits)
+DATE: November 23, 2025
 LICENSE: Internal Use Only
 
 ================================================================================
@@ -308,6 +306,21 @@ import time                                # Timing operations and delays
 import sys                                 # System operations and application exit
 import subprocess                          # Network connectivity testing (ping commands)
 import platform                            # Cross-platform OS detection and adaptation
+
+# =========================
+# GLOBAL CONFIGURATION
+# =========================
+# Per-servo position limits: {servo_number: (min, max)}
+POSITION_LIMITS = {
+    1: (0, 180),
+    2: (0, 180,
+    3: (0, 180),
+    4: (0, 180),
+    5: (0, 180),
+    6: (0, 180),
+    7: (0, 180),
+    8: (0, 180),
+}
 
 # Global font setting for consistent cross-platform alignment
 GLOBAL_FONT = ('Courier New', 10)
@@ -695,13 +708,13 @@ setpoint_values_1 = {
     'Start': 0,         # Motion start trigger
     
     # Servo 1 setpoints: Velocity, Acceleration, Position (safe defaults)
-    'S1V_SPT': 10000, 'S1A_SPT': 10000, 'S1P_SPT': 0,
+    'S1V_SPT': 1000, 'S1A_SPT': 1000, 'S1P_SPT': 0,
     # Servo 2 setpoints: Velocity, Acceleration, Position
-    'S2V_SPT': 10000, 'S2A_SPT': 10000, 'S2P_SPT': 0,
+    'S2V_SPT': 1000, 'S2A_SPT': 1000, 'S2P_SPT': 0,
     # Servo 3 setpoints: Velocity, Acceleration, Position  
-    'S3V_SPT': 10000, 'S3A_SPT': 10000, 'S3P_SPT': 0,
+    'S3V_SPT': 1000, 'S3A_SPT': 1000, 'S3P_SPT': 0,
     # Servo 4 setpoints: Velocity, Acceleration, Position
-    'S4V_SPT': 10000, 'S4A_SPT': 10000, 'S4P_SPT': 0
+    'S4V_SPT': 1000, 'S4A_SPT': 1000, 'S4P_SPT': 0
 }
 setpoint_values_2 = {
     # System control parameters
@@ -1099,9 +1112,10 @@ def handle_servo_buttons(event, enable_command, disable_command, enabled, window
     
     elif event.endswith('B3'):
         servo = int(event[1])
-        V_data = validate_input(f'S{servo}V_SPT', values, 0, 20000)
-        A_data = validate_input(f'S{servo}A_SPT', values, 0, 20000)
-        P_data = validate_input(f'S{servo}P_SPT', values, 0, 20000)
+        V_data = validate_input(f'S{servo}V_SPT', values, 0, 1000)
+        A_data = validate_input(f'S{servo}A_SPT', values, 0, 1000)
+        pos_min, pos_max = POSITION_LIMITS.get(servo, (0, 1000))
+        P_data = validate_input(f'S{servo}P_SPT', values, pos_min, pos_max)
         if all(x is not None for x in (V_data, A_data, P_data)):
             cmd = f"CMD:S{servo}_Parameters:{V_data},{A_data},{P_data}\n"
             # print(f"Debugs 36 - Sending command: {cmd.strip()}")   
@@ -1242,37 +1256,48 @@ def build_board_panel(board_num, arduino_values, setpoint_values, GUI_button_sta
     This provides complete 8-axis control capability with clean organization across two tabs.
     Each servo has independent Velocity, Acceleration, and Position controls.
     """
+
     prefix = f'B{board_num}_'
     panel = [
-        # [sg.Text(f'Board {board_num} State Engine Step:', size=(22, 1), justification='right', font=('Helvetica', 12, 'bold')), sg.Text('0', size=(3, 1), key=prefix+'state_engine_step', font=('Helvetica', 12, 'bold'))],
-        # [
-    # sg.Text('', size=(8, 1)),  # <-- This moves the buttons to the right by 6 characters
-    # sg.Button('Auto' if GUI_button_states['Mode'] else 'Manual', key=prefix+'Mode',
-              # button_color=('white', 'green') if GUI_button_states['Mode'] else ('black', 'yellow')),
-    # sg.Button('Repeat' if GUI_button_states['Repeat'] else 'Single', key=prefix+'Repeat',
-              # button_color=('white', 'green') if GUI_button_states['Repeat'] else ('black', 'yellow')),
-    # sg.Button('Started' if GUI_button_states['Start'] else 'Start', key=prefix+'Start',
-              # button_color=('white', 'green') if GUI_button_states['Start'] else ('black', 'yellow')),
-        # ],
-        # Header row: Velocity and Acceleration headers for setpoint buttons, Position for actual values
-        [sg.Text(' ', size=(48, 1), font=GLOBAL_FONT), sg.Text('Velocity', size=(8, 1), font=GLOBAL_FONT), sg.Text('Acceleration', size=(12, 1), font=GLOBAL_FONT), sg.Text('Position', size=(8, 1), font=GLOBAL_FONT)],
+        [sg.Button('Clear All Faults', key=prefix+'CLEAR_ALL_FAULTS', font=GLOBAL_FONT, size=(18,2), pad=((0, 0), (0, 0)))]
     ]
+
     for i in range(1, 5):
         # All Servos 1-4: Show all controls (Velocity, Acceleration, Position) - Hide Enable/Start buttons
-        panel += [
-            [sg.Text(f'Position {i}', size=(11, 1), justification='left', font=POSITION_LABEL_FONT),
-             sg.Text('', size=(22, 1), font=GLOBAL_FONT),  # Hidden Enable/Disable button
-             sg.Text('', size=(8, 1), font=GLOBAL_FONT),   # Hidden Start/Stop button
-             sg.Button(f'{setpoint_values[f"S{i}V_SPT"]}', key=prefix+f'S{i}V_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
-             sg.Button(f'{setpoint_values[f"S{i}A_SPT"]}', key=prefix+f'S{i}A_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
-             sg.Button(f'{setpoint_values[f"S{i}P_SPT"]}', key=prefix+f'S{i}P_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
-             sg.Button('OK', key=prefix+f'S{i}B3', size=(8, 2), font=GLOBAL_FONT)],
-            [sg.Button('Clear Value', key=prefix+f'S{i}B4', size=(16, 1), button_color=('black', 'orange'), font=CLEAR_BUTTON_FONT),
-             sg.Text('', size=(5, 1), font=GLOBAL_FONT),  # 5-space spacing after Clear Value button
-             sg.Text('Current Position', size=(16, 1), justification='left', font=GLOBAL_FONT),
-             sg.Text('..............................', size=(31, 1), font=GLOBAL_FONT),  # Adjusted spacing
-             sg.Text(arduino_values[f'S{i}P'], size=(6, 1), key=prefix+f'S{i}P_display', justification='center', font=GLOBAL_FONT)]
-        ]
+        # On the second row (i==2), add the Clear All Faults button at the end
+        if i == 2:
+            panel += [
+                [sg.Text(f'Position {i}', size=(11, 1), justification='left', font=POSITION_LABEL_FONT),
+                 sg.Text('', size=(22, 1), font=GLOBAL_FONT),  # Hidden Enable/Disable button
+                 sg.Text('', size=(8, 1), font=GLOBAL_FONT),   # Hidden Start/Stop button
+                 sg.Button(f'{setpoint_values[f"S{i}V_SPT"]}', key=prefix+f'S{i}V_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button(f'{setpoint_values[f"S{i}A_SPT"]}', key=prefix+f'S{i}A_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button(f'{setpoint_values[f"S{i}P_SPT"]}', key=prefix+f'S{i}P_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button('OK', key=prefix+f'S{i}B3', size=(8, 2), font=GLOBAL_FONT)]
+            ]
+            panel += [
+                [sg.Button('Clear Value', key=prefix+f'S{i}B4', size=(16, 1), button_color=('black', 'orange'), font=CLEAR_BUTTON_FONT),
+                 sg.Text('', size=(5, 1), font=GLOBAL_FONT),  # 5-space spacing after Clear Value button
+                 sg.Text('Current Position', size=(16, 1), justification='left', font=GLOBAL_FONT),
+                 sg.Text('..............................', size=(31, 1), font=GLOBAL_FONT),  # Adjusted spacing
+                 sg.Text(arduino_values[f'S{i}P'], size=(6, 1), key=prefix+f'S{i}P_display', justification='center', font=GLOBAL_FONT),
+                 sg.Text('', size=(1, 1))]  # Spacer to align with above
+            ]
+        else:
+            panel += [
+                [sg.Text(f'Position {i}', size=(11, 1), justification='left', font=POSITION_LABEL_FONT),
+                 sg.Text('', size=(22, 1), font=GLOBAL_FONT),  # Hidden Enable/Disable button
+                 sg.Text('', size=(8, 1), font=GLOBAL_FONT),   # Hidden Start/Stop button
+                 sg.Button(f'{setpoint_values[f"S{i}V_SPT"]}', key=prefix+f'S{i}V_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button(f'{setpoint_values[f"S{i}A_SPT"]}', key=prefix+f'S{i}A_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button(f'{setpoint_values[f"S{i}P_SPT"]}', key=prefix+f'S{i}P_SPT_btn', size=(8, 1), button_color=('black', 'lightblue'), font=GLOBAL_FONT),
+                 sg.Button('OK', key=prefix+f'S{i}B3', size=(8, 2), font=GLOBAL_FONT)],
+                [sg.Button('Clear Value', key=prefix+f'S{i}B4', size=(16, 1), button_color=('black', 'orange'), font=CLEAR_BUTTON_FONT),
+                 sg.Text('', size=(5, 1), font=GLOBAL_FONT),  # 5-space spacing after Clear Value button
+                 sg.Text('Current Position', size=(16, 1), justification='left', font=GLOBAL_FONT),
+                 sg.Text('..............................', size=(31, 1), font=GLOBAL_FONT),  # Adjusted spacing
+                 sg.Text(arduino_values[f'S{i}P'], size=(6, 1), key=prefix+f'S{i}P_display', justification='center', font=GLOBAL_FONT)]
+            ]
     return panel
 
 # Build the main layout with both tabs enabled for 8-axis control
@@ -1418,6 +1443,12 @@ while True:
     if event == sg.WIN_CLOSED or event == "Exit":
         print("Debug 40 - Window closed or Exit event triggered")
         break
+
+    # [CHANGE 2025-11-23] Handle Clear All Faults button for each board
+    if event == 'B1_CLEAR_ALL_FAULTS':
+        send_udp_command1("BOARD:1;CMD:CLEAR_ALL_FAULTS\n")
+    if event == 'B2_CLEAR_ALL_FAULTS':
+        send_udp_command2("BOARD:2;CMD:CLEAR_ALL_FAULTS\n")
     
     # Handle shutdown button (Raspberry Pi only)
     if event == 'SHUTDOWN':
@@ -1558,10 +1589,11 @@ while True:
                 case _ if event_key.endswith('P_SPT_btn'):
                     servo = int(event_key[1])
                     current_value = setpoint_values[f'S{servo}P_SPT']
+                    pos_min, pos_max = POSITION_LIMITS.get(servo, (0, 54000))
                     new_value = show_numeric_keypad(
                         f'Position Setpoint for Servo {servo}',
                         current_value,
-                        0, 54000
+                        pos_min, pos_max
                     )
                     if new_value is not None:
                         setpoint_values[f'S{servo}P_SPT'] = new_value
