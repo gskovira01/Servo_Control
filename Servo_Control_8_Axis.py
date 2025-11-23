@@ -313,7 +313,7 @@ import platform                            # Cross-platform OS detection and ada
 # Per-servo position limits: {servo_number: (min, max)}
 POSITION_LIMITS = {
     1: (0, 180),
-    2: (0, 180,
+    2: (0, 180),
     3: (0, 180),
     4: (0, 180),
     5: (0, 180),
